@@ -3,6 +3,7 @@
 </p>
 
 # Create a JavaScript Action using Typscript
+
 Use this template to bootstrap the creation of a JavaScript action.:rocket:
 
 This template includes compilication support, tests, a validation workflow, publishing, and versioning guidance.  
