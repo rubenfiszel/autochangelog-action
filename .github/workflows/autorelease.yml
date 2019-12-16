@@ -11,9 +11,11 @@ jobs:
 
     steps:
       - name: echo
-        run: echo "$LABELS"
+        run: echo "$LABELS" && echo "$LABELS2" && echo "$LABELS3"
         env:
           LABELS: ${{ toJson(github.event.pull_request) }}
+          LABELS2: ${{ toJson(github.event.pull_request.labels) }}
+          LABELS3: ${{ toJson(github.event.pull_request.labels.*.name) }}
       - name: Pull request merged
         if: github.event.pull_request.merged == true && contains(toJSON(github.event.pull_request.labels.*.name), '"autorelease"')
         run: echo merged
