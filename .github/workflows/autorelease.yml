@@ -11,5 +11,5 @@ jobs:
 
     steps:
     - name: Pull request merged
-      if: github.event.pull_request.merged == true
+      if: github.event.pull_request.merged == true && contains(toJSON(github.event.pull_request.*.name), '"autorelease"')
       run: echo merged
