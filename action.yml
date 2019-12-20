@@ -1,0 +1,30 @@
+name: 'autochangelog'
+description: 'An action to generate the changelog based on conventional commits'
+author: 'rubenfiszel'
+inputs:
+  changelog_file:
+    description: 'changelog file path'
+    required: false
+    default: './CHANGELOG.md'
+  manifest_file:
+    description: 'manifest file path'
+    required: false
+    default: './manifest.yml'
+  issues_url_prefix:
+    description: 'issues url prefix'
+    required: false
+    default: ''
+  tag_prefix:
+    description: 'tag_prefix (used to retrieve commits)'
+    required: false
+    default: 'v'
+  dry_run:
+    description: 'do not change files'
+    required: false
+    default: 'false'
+outputs:
+  version:
+    description: 'the new version'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
