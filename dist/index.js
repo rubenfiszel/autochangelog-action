@@ -3518,7 +3518,7 @@ const simplegit = __importStar(__webpack_require__(57));
 const git = simplegit.default();
 const readFileAsync = util_1.default.promisify(fs_1.default.readFile);
 const writeFileAsync = util_1.default.promisify(fs_1.default.writeFile);
-const debug = true;
+const debug = false;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {

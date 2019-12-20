@@ -16,7 +16,7 @@ interface Version {
 
 type ManifestType = "json" | "yaml"
 
-const debug = true
+const debug = false
 
 async function run(): Promise<void> {
   try {
