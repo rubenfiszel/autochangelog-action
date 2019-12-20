@@ -16,13 +16,13 @@ interface Version {
 
 type ManifestType = "json" | "yaml"
 
-const debug = false
+const debug = true
 
 async function run(): Promise<void> {
   try {
 
     const mfFile = debug ? './manifest.yml' : core.getInput('manifest_file')
-    const chgFile = debug ? 'CHANGELOG.md' : core.getInput('changelog_file')
+    const chgFile = debug ? './CHANGELOG.md' : core.getInput('changelog_file')
     const dryRun = debug ? true : core.getInput('dry_run') === 'true'
 
     console.log(mfFile, chgFile, dryRun)
@@ -255,7 +255,7 @@ function stringifyHeader(str: string): string {
   let r = str
   const prefix = debug ? 'prefix' : core.getInput('issues_url_prefix')
   str.match(mentionRegex)?.forEach(e =>
-    r = r.replace(e, `[${e}](${prefix}${e})`)
+    r = r.replace(e, `[${e}](${prefix}${e.substr(1)})`)
   )
   return r
 }

@@ -3518,12 +3518,12 @@ const simplegit = __importStar(__webpack_require__(57));
 const git = simplegit.default();
 const readFileAsync = util_1.default.promisify(fs_1.default.readFile);
 const writeFileAsync = util_1.default.promisify(fs_1.default.writeFile);
-const debug = false;
+const debug = true;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const mfFile = debug ? './manifest.yml' : core.getInput('manifest_file');
-            const chgFile = debug ? 'CHANGELOG.md' : core.getInput('changelog_file');
+            const chgFile = debug ? './CHANGELOG.md' : core.getInput('changelog_file');
             const dryRun = debug ? true : core.getInput('dry_run') === 'true';
             console.log(mfFile, chgFile, dryRun);
             const ext = mfFile.split(".").pop();
@@ -3713,7 +3713,7 @@ function stringifyHeader(str) {
     var _a;
     let r = str;
     const prefix = debug ? 'prefix' : core.getInput('issues_url_prefix');
-    (_a = str.match(mentionRegex)) === null || _a === void 0 ? void 0 : _a.forEach(e => r = r.replace(e, `[${e}](${prefix}${e})`));
+    (_a = str.match(mentionRegex)) === null || _a === void 0 ? void 0 : _a.forEach(e => r = r.replace(e, `[${e}](${prefix}${e.substr(1)})`));
     return r;
 }
 function stringifyMap(map) {
