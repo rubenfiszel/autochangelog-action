@@ -3719,7 +3719,7 @@ function stringifyHeader(str) {
 function stringifyMap(map) {
     let str = "";
     Array.from(map.entries())
-        .filter(e => { var _a; return (_a = typeMap[e[0]]) === null || _a === void 0 ? void 0 : _a.visible; })
+        .filter(e => { var _a; return ((_a = typeMap[e[0]]) === null || _a === void 0 ? void 0 : _a.visible) || e[1].filter(c => c.isBreaking).length > 0; })
         .forEach(e => str += `### ${typeMap[e[0]].desc}
     
 ${stringifyUnscopedCCs(e[1])}`);
@@ -3748,7 +3748,9 @@ ${stringifyConventionalCommits(unscopedCommits)}
     return str;
 }
 function stringifyConventionalCommits(cs) {
-    return cs.map(c => `- ${stringifyHeader(c.desc)}`).join("\n") + "\n";
+    return cs
+        .filter(c => c.isBreaking || typeMap[c.type].visible)
+        .map(c => `- ${stringifyHeader(c.desc)}`).join("\n") + "\n";
 }
 function groupBy(arr, toGroup) {
     const m = new Map();
