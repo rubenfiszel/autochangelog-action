@@ -224,7 +224,7 @@ function stringifyChg(changelog: SemanticChangelog): string {
   const date = new Date()
   const untrackedChanges = changelog.untrackedChanges.length == 0
     ? ""
-    : `\n## Untracked Changes
+    : `\n## Unclassified Changes
 
 ${stringifyNonConventionalCommits(changelog.untrackedChanges)}`
 
@@ -271,11 +271,33 @@ function stringifyMap(map: Map<string, ConventionalCommit[]>): string {
     .filter(e => typeMap[e[0]]?.visible)
     .forEach(e => str += `### ${typeMap[e[0]].desc}
     
-${stringifyConventionalCommits(e[1])}`)
+${stringifyUnscopedCCs(e[1])}`)
   return str
 }
 
-function stringifyConventionalCommits(cs: ConventionalCommit[]) {
+function stringifyUnscopedCCs(cs: ConventionalCommit[]): string {
+  const grouped = groupBy(cs, c => c.scope ?? "")
+  let str = ""
+  Array.from(grouped.entries())
+    .filter(e => e[0] !== "")
+    .forEach(e => str += `#### ${e[0]}
+    
+${stringifyConventionalCommits(e[1])}
+`)
+
+  const unscopedCommits = grouped.get("") ?? []
+  if (str === "" || unscopedCommits.length == 0) {
+    str += stringifyConventionalCommits(unscopedCommits)
+  } else {
+    str += `#### Unscoped Changes
+    
+${stringifyConventionalCommits(unscopedCommits)}
+`
+  }
+  return str
+}
+
+function stringifyConventionalCommits(cs: ConventionalCommit[]): string {
   return cs.map(c => `- ${stringifyHeader(c.desc)}`).join("\n") + "\n"
 }
 

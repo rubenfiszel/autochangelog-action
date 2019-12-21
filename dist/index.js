@@ -3688,7 +3688,7 @@ function stringifyChg(changelog) {
     const date = new Date();
     const untrackedChanges = changelog.untrackedChanges.length == 0
         ? ""
-        : `\n## Untracked Changes
+        : `\n## Unclassified Changes
 
 ${stringifyNonConventionalCommits(changelog.untrackedChanges)}`;
     const brkChanges = changelog.breakingChanges.size == 0
@@ -3722,7 +3722,29 @@ function stringifyMap(map) {
         .filter(e => { var _a; return (_a = typeMap[e[0]]) === null || _a === void 0 ? void 0 : _a.visible; })
         .forEach(e => str += `### ${typeMap[e[0]].desc}
     
-${stringifyConventionalCommits(e[1])}`);
+${stringifyUnscopedCCs(e[1])}`);
+    return str;
+}
+function stringifyUnscopedCCs(cs) {
+    var _a;
+    const grouped = groupBy(cs, c => { var _a; return _a = c.scope, (_a !== null && _a !== void 0 ? _a : ""); });
+    let str = "";
+    Array.from(grouped.entries())
+        .filter(e => e[0] !== "")
+        .forEach(e => str += `#### ${e[0]}
+    
+${stringifyConventionalCommits(e[1])}
+`);
+    const unscopedCommits = (_a = grouped.get(""), (_a !== null && _a !== void 0 ? _a : []));
+    if (str === "" || unscopedCommits.length == 0) {
+        str += stringifyConventionalCommits(unscopedCommits);
+    }
+    else {
+        str += `#### Unscoped Changes
+    
+${stringifyConventionalCommits(unscopedCommits)}
+`;
+    }
     return str;
 }
 function stringifyConventionalCommits(cs) {
