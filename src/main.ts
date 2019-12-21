@@ -268,7 +268,7 @@ interface TypeValue {
 function stringifyMap(map: Map<string, ConventionalCommit[]>): string {
   let str = ""
   Array.from(map.entries())
-    .filter(e => typeMap[e[0]]?.visible)
+    .filter(e => typeMap[e[0]]?.visible || e[1].filter(c => c.isBreaking).length > 0)
     .forEach(e => str += `### ${typeMap[e[0]].desc}
     
 ${stringifyUnscopedCCs(e[1])}`)
@@ -298,7 +298,9 @@ ${stringifyConventionalCommits(unscopedCommits)}
 }
 
 function stringifyConventionalCommits(cs: ConventionalCommit[]): string {
-  return cs.map(c => `- ${stringifyHeader(c.desc)}`).join("\n") + "\n"
+  return cs
+    .filter(c => c.isBreaking || typeMap[c.type].visible)
+    .map(c => `- ${stringifyHeader(c.desc)}`).join("\n") + "\n"
 }
 
 
