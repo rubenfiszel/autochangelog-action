@@ -234,7 +234,7 @@ ${stringifyNonConventionalCommits(changelog.untrackedChanges)}`
 
 ${stringifyMap(changelog.breakingChanges)}`
 
-  const changes = changelog.breakingChanges.size == 0
+  const changes = changelog.nonBreakingChanges.size == 0
     ? ""
     : (brkChanges == "" && untrackedChanges == "")
       ? stringifyMap(changelog.nonBreakingChanges)
