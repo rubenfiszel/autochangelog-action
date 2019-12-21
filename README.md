@@ -157,3 +157,18 @@ jobs:
           # An optional tag for the release. If this is omitted the git ref will be used (if it is a tag).
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+## Local Dev Setup
+
+One way to iterate over the features here is to set the `const debug` to true and run the script locally after compilation: `node lib/main.js`
+
+## Dependency Philosophy
+
+This action is very dependency light, only:
+
+- `"@actions/core": "^1.2.0"`
+- `"simple-git": "^1.129.0"`
+- `"util": "^0.12.1"`
+- `"yaml": "^1.7.2"`
+
+It would be desirable to keep it this way by making sure most simple logic are reimplemented if needed.
