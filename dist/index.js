@@ -3655,7 +3655,7 @@ function getSemanticChangelog(version) {
             let releaseType = "patch";
             if (breakingChangesUngrouped.length > 0 && parseInt(version.split('.')[0]) > 0)
                 releaseType = "major";
-            else if (nonBreakingChangesUngrouped.filter(c => c.type === "feat").length > 0)
+            else if (nonBreakingChangesUngrouped.filter(c => c.type === "feat").length > 0 || breakingChangesUngrouped.length > 0)
                 releaseType = "minor";
             return {
                 newVersion: inc(version, releaseType),
