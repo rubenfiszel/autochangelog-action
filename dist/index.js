@@ -3672,9 +3672,12 @@ function inc(version, releaseType) {
     switch (releaseType) {
         case "major":
             major++;
+            minor = 0;
+            patch = 0;
             break;
         case "minor":
             minor++;
+            patch = 0;
             break;
         case "patch":
             patch++;
