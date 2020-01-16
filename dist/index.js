@@ -3706,7 +3706,7 @@ ${stringifyMap(changelog.breakingChanges)}`;
             : `\n## Changes
 
 ${stringifyMap(changelog.nonBreakingChanges)}`;
-    return `# ${changelog.newVersion} - ${date.getDate()}-${date.getMonth()}-${date.getFullYear()}
+    return `# ${changelog.newVersion} - ${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}
 ${untrackedChanges}${brkChanges}${changes}`;
 }
 function stringifyNonConventionalCommits(cs) {
