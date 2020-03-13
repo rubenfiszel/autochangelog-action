@@ -3525,100 +3525,107 @@ function run() {
             const mfFile = debug ? './manifest.yml' : core.getInput('manifest_file');
             const chgFile = debug ? './CHANGELOG.md' : core.getInput('changelog_file');
             const dryRun = debug ? true : core.getInput('dry_run') === 'true';
-            console.log(mfFile, chgFile, dryRun);
-            const ext = mfFile.split(".").pop();
-            const mfType = ext == "json" ? "json" : (ext == "yaml" || ext == "yml") ? "yaml" : undefined;
+            const ext = mfFile.split('.').pop();
+            const mfType = ext === 'json'
+                ? 'json'
+                : ext === 'yaml' || ext === 'yml'
+                    ? 'yaml'
+                    : undefined;
+            const zeroVersion = { version: '0.0.0' };
             const parsedMf = readFileAsync(mfFile, 'utf8')
-                .then(mfFileContent => {
-                if (mfType === "yaml")
+                .then((mfFileContent) => __awaiter(this, void 0, void 0, function* () {
+                if (mfType === 'yaml')
                     return yaml_1.default.parse(mfFileContent);
-                else if (mfType === "json")
+                else if (mfType === 'json')
                     return JSON.parse(mfFileContent);
                 else
                     return null;
-            })
-                .then(version => (version !== null && version !== void 0 ? version : { version: "0.0.0" }))
-                .catch(e => ({ version: "0.0.0" }));
-            const newChangelog = yield parsedMf.then(obj => getSemanticChangelog(obj.version));
-            core.setOutput("version", newChangelog.newVersion);
+            }))
+                .then((version) => __awaiter(this, void 0, void 0, function* () { return (version !== null && version !== void 0 ? version : zeroVersion); }))
+                .catch(() => zeroVersion);
+            const newChangelog = yield parsedMf.then((obj) => __awaiter(this, void 0, void 0, function* () { return getSemanticChangelog(obj.version); }));
+            core.setOutput('version', newChangelog.newVersion);
             const chgPromise = readFileAsync(chgFile, 'utf8')
-                .catch(e => "")
+                .catch(() => '')
                 .then(oldChglog => `${stringifyChg(newChangelog)}\n${oldChglog}`)
-                .then(chglogStr => {
-                console.log("Changelog new content:\n");
-                console.log(chglogStr);
-                console.log('------');
+                .then((chglogStr) => __awaiter(this, void 0, void 0, function* () {
+                core.info('Changelog new content:\n');
+                core.info(chglogStr);
+                core.info('------');
                 if (!dryRun) {
                     writeFileAsync(chgFile, chglogStr);
                 }
                 else {
                     return Promise.resolve();
                 }
-            });
+            }));
             const mfPromise = parsedMf
-                .then(obj => (Object.assign(Object.assign({}, obj), { version: newChangelog.newVersion })))
                 .then(obj => {
-                if (mfType === "yaml")
+                const version = Object.assign(Object.assign({}, obj), { version: newChangelog.newVersion });
+                version;
+            })
+                .then(obj => {
+                if (mfType === 'yaml')
                     return yaml_1.default.stringify(obj);
-                else if (mfType === "json")
+                else if (mfType === 'json')
                     return JSON.stringify(obj, null, 2);
                 else
-                    return "";
+                    return '';
             })
-                .then(newMfFileContent => {
-                console.log("Manifest new content:");
-                console.log(newMfFileContent);
-                console.log('------');
+                .then((newMfFileContent) => __awaiter(this, void 0, void 0, function* () {
+                core.info('Manifest new content:');
+                core.info(newMfFileContent);
+                core.info('------');
                 if (!dryRun) {
                     return writeFileAsync(mfFile, newMfFileContent, 'utf8');
                 }
                 else {
                     return Promise.resolve();
                 }
-            });
+            }));
             Promise.all([chgPromise, mfPromise]);
         }
         catch (error) {
-            console.log(error);
+            core.info(error);
             core.setFailed(error.message);
         }
     });
 }
 const typeMap = {
-    'feat': { desc: 'Features', visible: true },
-    'fix': { desc: 'Bug Fixes', visible: true },
-    'revert': { desc: 'Reverts', visible: true },
-    'docs': { desc: 'Documentation', visible: false },
-    'style': { desc: 'Styles', visible: false },
-    'chore': { desc: 'Miscellaneous Chores', visible: false },
-    'refactor': { desc: 'Code Refactoring', visible: false },
-    'test': { desc: 'Tests', visible: false },
-    'build': { desc: 'Build System', visible: false },
-    'ci': { desc: 'Continuous Integration', visible: false },
+    feat: { desc: 'Features', visible: true },
+    fix: { desc: 'Bug Fixes', visible: true },
+    revert: { desc: 'Reverts', visible: true },
+    docs: { desc: 'Documentation', visible: false },
+    style: { desc: 'Styles', visible: false },
+    chore: { desc: 'Miscellaneous Chores', visible: false },
+    refactor: { desc: 'Code Refactoring', visible: false },
+    test: { desc: 'Tests', visible: false },
+    build: { desc: 'Build System', visible: false },
+    ci: { desc: 'Continuous Integration', visible: false }
 };
 function isConventional(commit) {
     return commit.type !== undefined;
 }
-const firstLineRegex = /^(?<type>\w*)(?:\((?<scope>[\w$.\-* ]*)\))?(?<bang>\!)?: (?<desc>.*)$/;
-const mentionRegex = /\#\d+/g;
+const firstLineRegex = /^(?<type>\w*)(?:\((?<scope>[\w$.\-* ]*)\))?(?<bang>!)?: (?<desc>.*)$/;
+const mentionRegex = /#\d+/g;
 const BRK_CHG = 'BREAKING CHANGE';
 function parse(l) {
     var _a, _b;
     try {
         const { type, scope, bang, desc } = firstLineRegex.exec(l.message).groups;
         if (typeMap[type]) {
-            const [body, ign, ...footers] = l.body.split("\n");
+            const [body, _ign, ...footers] = l.body.split('\n');
             return {
-                type: type,
-                scope: scope,
-                desc: desc,
-                body: body,
-                footers: footers,
-                isBreaking: (type == BRK_CHG)
-                    || bang != undefined
-                    || body.startsWith(BRK_CHG)
-                    || footers.filter(ftr => ftr.startsWith(BRK_CHG)).length > 0,
-                mentions: (_b = (_a = (desc + " " + body + " " + footers.join(" "))
+                type,
+                scope,
+                desc,
+                body,
+                footers,
+                isBreaking: type === BRK_CHG ||
+                    bang !== undefined ||
+                    body.startsWith(BRK_CHG) ||
+                    footers.filter(ftr => ftr.startsWith(BRK_CHG)).length > 0,
+                mentions: (_b = (_a = `${desc} ${body} ${footers.join(' ')}`
                     .match(mentionRegex)) === null || _a === void 0 ? void 0 : _a.map(str => str.substr(1)).map(str => parseInt(str)), (_b !== null && _b !== void 0 ? _b : []))
             };
         }
@@ -3639,11 +3646,12 @@ function parse(l) {
 function getSemanticChangelog(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const tagPrefix = debug ? 'v' : core.getInput('tag_prefix');
-        const logs = (version == "0.0.0") ? git.log() : git
-            .log({
-            from: tagPrefix + version,
-            to: "HEAD"
-        });
+        const logs = version === '0.0.0'
+            ? git.log()
+            : git.log({
+                from: tagPrefix + version,
+                to: 'HEAD'
+            });
         return logs
             .then(list => Array.from(list.all.values()))
             .then(list => list.map(parse))
@@ -3652,17 +3660,19 @@ function getSemanticChangelog(version) {
             const [nonBreakingChangesUngrouped, breakingChangesUngrouped] = partition(trackedChanges, c => !c.isBreaking);
             const breakingChanges = groupBy(breakingChangesUngrouped, c => c.type);
             const nonBreakingChanges = groupBy(nonBreakingChangesUngrouped, c => c.type);
-            let releaseType = "patch";
-            if (breakingChangesUngrouped.length > 0 && parseInt(version.split('.')[0]) > 0)
-                releaseType = "major";
-            else if (nonBreakingChangesUngrouped.filter(c => c.type === "feat").length > 0 || breakingChangesUngrouped.length > 0)
-                releaseType = "minor";
+            let releaseType = 'patch';
+            if (breakingChangesUngrouped.length > 0 &&
+                parseInt(version.split('.')[0]) > 0)
+                releaseType = 'major';
+            else if (nonBreakingChangesUngrouped.filter(c => c.type === 'feat').length > 0 ||
+                breakingChangesUngrouped.length > 0)
+                releaseType = 'minor';
             return {
                 newVersion: inc(version, releaseType),
-                releaseType: releaseType,
+                releaseType,
                 untrackedChanges: untrackedChanges,
-                breakingChanges: breakingChanges,
-                nonBreakingChanges: nonBreakingChanges
+                breakingChanges,
+                nonBreakingChanges
             };
         });
     });
@@ -3670,16 +3680,16 @@ function getSemanticChangelog(version) {
 function inc(version, releaseType) {
     let [major, minor, patch] = version.split('.').map(s => parseInt(s));
     switch (releaseType) {
-        case "major":
+        case 'major':
             major++;
             minor = 0;
             patch = 0;
             break;
-        case "minor":
+        case 'minor':
             minor++;
             patch = 0;
             break;
-        case "patch":
+        case 'patch':
             patch++;
             break;
         default:
@@ -3689,57 +3699,61 @@ function inc(version, releaseType) {
 }
 function stringifyChg(changelog) {
     const date = new Date();
-    const untrackedChanges = changelog.untrackedChanges.length == 0
-        ? ""
+    const untrackedChanges = changelog.untrackedChanges.length === 0
+        ? ''
         : `\n## Unclassified Changes
 
 ${stringifyNonConventionalCommits(changelog.untrackedChanges)}`;
-    const brkChanges = changelog.breakingChanges.size == 0
-        ? ""
+    const brkChanges = changelog.breakingChanges.size === 0
+        ? ''
         : `\n## Breaking Changes
 
 ${stringifyMap(changelog.breakingChanges)}`;
-    const changes = changelog.nonBreakingChanges.size == 0
-        ? ""
-        : (brkChanges == "" && untrackedChanges == "")
+    const changes = changelog.nonBreakingChanges.size === 0
+        ? ''
+        : brkChanges === '' && untrackedChanges === ''
             ? stringifyMap(changelog.nonBreakingChanges)
             : `\n## Changes
 
 ${stringifyMap(changelog.nonBreakingChanges)}`;
-    return `# ${changelog.newVersion} - ${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}
+    return `# ${changelog.newVersion} - ${date.getDate()}-${date.getMonth() +
+        1}-${date.getFullYear()}
 ${untrackedChanges}${brkChanges}${changes}`;
 }
 function stringifyNonConventionalCommits(cs) {
-    return cs.map(c => `- ${stringifyHeader(c.header)}`).join("\n") + "\n";
+    return `${cs.map(c => `- ${stringifyHeader(c.header)}`).join('\n')}\n`;
 }
 function stringifyHeader(str) {
     var _a;
     let r = str;
     const prefix = debug ? 'prefix' : core.getInput('issues_url_prefix');
-    (_a = str.match(mentionRegex)) === null || _a === void 0 ? void 0 : _a.forEach(e => r = r.replace(e, `[${e}](${prefix}${e.substr(1)})`));
+    (_a = str
+        .match(mentionRegex)) === null || _a === void 0 ? void 0 : _a.forEach(e => (r = r.replace(e, `[${e}](${prefix}${e.substr(1)})`)));
     return r;
 }
 function stringifyMap(map) {
-    let str = "";
-    Array.from(map.entries())
-        .filter(e => { var _a; return ((_a = typeMap[e[0]]) === null || _a === void 0 ? void 0 : _a.visible) || e[1].filter(c => c.isBreaking).length > 0; })
-        .forEach(e => str += `### ${typeMap[e[0]].desc}
+    let str = '';
+    const arr = Array.from(map.entries()).filter(e => { var _a; return ((_a = typeMap[e[0]]) === null || _a === void 0 ? void 0 : _a.visible) || e[1].filter(c => c.isBreaking).length > 0; });
+    for (const e of arr) {
+        str += `### ${typeMap[e[0]].desc}
     
-${stringifyUnscopedCCs(e[1])}`);
+${stringifyUnscopedCCs(e[1])}`;
+    }
     return str;
 }
 function stringifyUnscopedCCs(cs) {
     var _a;
-    const grouped = groupBy(cs, c => { var _a; return _a = c.scope, (_a !== null && _a !== void 0 ? _a : ""); });
-    let str = "";
-    Array.from(grouped.entries())
-        .filter(e => e[0] !== "")
-        .forEach(e => str += `#### ${e[0]}
+    const grouped = groupBy(cs, c => { var _a; return _a = c.scope, (_a !== null && _a !== void 0 ? _a : ''); });
+    let str = '';
+    const arr = Array.from(grouped.entries()).filter(e => e[0] !== '');
+    for (const e of arr) {
+        str += `#### ${e[0]}
     
 ${stringifyConventionalCommits(e[1])}
-`);
-    const unscopedCommits = (_a = grouped.get(""), (_a !== null && _a !== void 0 ? _a : []));
-    if (str === "" || unscopedCommits.length == 0) {
+`;
+    }
+    const unscopedCommits = (_a = grouped.get(''), (_a !== null && _a !== void 0 ? _a : []));
+    if (str === '' || unscopedCommits.length === 0) {
         str += stringifyConventionalCommits(unscopedCommits);
     }
     else {
@@ -3751,25 +3765,26 @@ ${stringifyConventionalCommits(unscopedCommits)}
     return str;
 }
 function stringifyConventionalCommits(cs) {
-    return cs
+    return `${cs
         .filter(c => c.isBreaking || typeMap[c.type].visible)
-        .map(c => `- ${stringifyHeader(c.desc)}`).join("\n") + "\n";
+        .map(c => `- ${stringifyHeader(c.desc)}`)
+        .join('\n')}\n`;
 }
 function groupBy(arr, toGroup) {
+    var _a;
     const m = new Map();
-    arr.forEach(v => {
-        var _a;
+    for (const v of arr) {
         const group = toGroup(v);
         m.set(group, (_a = m.get(group), (_a !== null && _a !== void 0 ? _a : [])).concat(v));
-    });
+    }
     return m;
 }
 function partition(arr, predicate) {
     const partitioned = [[], []];
-    arr.forEach((val) => {
+    for (const val of arr) {
         const partitionIndex = predicate(val) ? 0 : 1;
         partitioned[partitionIndex].push(val);
-    });
+    }
     return partitioned;
 }
 run();
