@@ -131,12 +131,12 @@ jobs:
         id: version
         run: |
           sed -n 's/^version:\s\(.*\)$/\1/p' ${{ env.manifest_file }} \
-          | xargs -i echo "::set-output name=version::{}"
+          | xargs -I {} echo "::set-output name=version::{}"
       - name: get changelog
         id: changelog 
         run: |
           changelog=$(echo "${{ steps.version.outputs.version}}" \
-          | xargs -i sed -n '/^#\s\'"{}"'.*$/,/^#\s\([^[:space:]]\+\).*$/{//!p}' ${{ env.changelog_file }})
+          | xargs -I {} sed -n '/^#\s'"{}"'.*$/,/^#\s\([^[:space:]]\+\).*$/{//!p}' ${{ env.changelog_file }})
           echo $changelog
           changelog="${changelog//'%'/'%25'}"
           changelog="${changelog//$'\n'/'%0A'}"
