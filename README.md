@@ -68,6 +68,7 @@ jobs:
   push:
     name: Push Container
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci: Release')"
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
