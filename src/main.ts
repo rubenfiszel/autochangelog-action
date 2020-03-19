@@ -330,7 +330,7 @@ function stringifyConventionalCommits(cs: ConventionalCommit[]): string {
   return `${cs
     .filter(c => c.isBreaking || typeMap[c.type].visible)
     .map(c => `- ${stringifyHeader(c.desc)}`)
-    .join('\n')}\n`
+    .join('\n')}\n\n`
 }
 
 function groupBy<T>(arr: T[], toGroup: (val: T) => string): Map<string, T[]> {
