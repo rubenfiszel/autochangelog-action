@@ -3768,7 +3768,7 @@ function stringifyConventionalCommits(cs) {
     return `${cs
         .filter(c => c.isBreaking || typeMap[c.type].visible)
         .map(c => `- ${stringifyHeader(c.desc)}`)
-        .join('\n')}\n`;
+        .join('\n')}\n\n`;
 }
 function groupBy(arr, toGroup) {
     var _a;
