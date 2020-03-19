@@ -80,7 +80,7 @@ jobs:
       - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: autochangelog-action
         id: ac
-        uses: rubenfiszel/autochangelog-action@v0.13.0
+        uses: rubenfiszel/autochangelog-action@v0.14.0
         with:
           changelog_file: './CHANGELOG.md'
           manifest_file: './manifest.yaml'
