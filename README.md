@@ -1,6 +1,8 @@
 # autochangelog
 
-Appends changelog diff based on the conventional commits format history and bump a file containing, among others, that version as meta-information. Such file can be a package.json in the npm world, or a yaml file (file which contains contents either in json or yaml). The next version is inferred based on the changes since last released tag.
+Generates a changelog file (or append to existing) and bumps the version in a manifest file. The manifest file can be `package.json` in the npm world, or any JSON/YAML file. The next version is inferred based on the changes since last released tag.
+
+Note that changes must follow [Conventional Commit](https://www.conventionalcommits.org/en/v1.0.0/) specs.
 
 ## Introduction
 
@@ -8,7 +10,7 @@ This Github action takes the following assumptions:
 
 - The commit history of the master branch mostly respect the [conventional commit format](https://www.conventionalcommits.org/en/v1.0.0/). The action will still makes sense if it is partially or even not respected all, but it will not be able to do the proper next semantic version inference as well as pretty printing the changes in the changelog.
 - You have a _manifest_ file which is either YAML or JSON that has version as one of its top-level field.
-- You have a _changelog_ file in markdown in which you want to append
+- You have a _changelog_ file in markdown in which you want to append. If none exists, it generates `CHANGELOG.md` in your root folder.
 
 ## Proposed workflow
 
