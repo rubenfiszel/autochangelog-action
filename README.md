@@ -186,7 +186,7 @@ inputs:
   manifest_file:
     description: 'manifest file path'
     required: false
-    default: './manifest.yml'
+    default: './version.yml'
   issues_url_prefix:
     description: 'issues url prefix'
     required: false
