@@ -3562,7 +3562,7 @@ function run() {
             const mfPromise = parsedMf
                 .then(obj => {
                 const version = Object.assign(Object.assign({}, obj), { version: newChangelog.newVersion });
-                version;
+                return version;
             })
                 .then(obj => {
                 if (mfType === 'yaml')

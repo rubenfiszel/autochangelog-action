@@ -64,7 +64,7 @@ async function run(): Promise<void> {
     const mfPromise = parsedMf
       .then(obj => {
         const version: Version = {...obj, version: newChangelog.newVersion}
-        version
+        return version
       })
       .then(obj => {
         if (mfType === 'yaml') return YAML.stringify(obj)
