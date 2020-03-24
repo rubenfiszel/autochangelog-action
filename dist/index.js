@@ -3518,13 +3518,23 @@ const simplegit = __importStar(__webpack_require__(57));
 const git = simplegit.default();
 const readFileAsync = util_1.default.promisify(fs_1.default.readFile);
 const writeFileAsync = util_1.default.promisify(fs_1.default.writeFile);
-const debug = false;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        const debug = false;
+        if (debug) {
+            process.env['manifest_file'] = './manifest.yml';
+            process.env['changelog_file'] = './CHANGELOG.md';
+            process.env['dry_run'] = 'true';
+            process.env['tag_prefix'] = 'v';
+            process.env['issues_url_prefix'] = 'issues';
+        }
         try {
-            const mfFile = debug ? './manifest.yml' : core.getInput('manifest_file');
-            const chgFile = debug ? './CHANGELOG.md' : core.getInput('changelog_file');
-            const dryRun = debug ? true : core.getInput('dry_run') === 'true';
+            const mfFile = core.getInput('manifest_file');
+            const chgFile = core.getInput('changelog_file');
+            const dryRun = core.getInput('dry_run') === 'true';
+            core.info(`mfFile: ${mfFile}`);
+            core.info(`chFile: ${chgFile}`);
+            core.info(`dryRun: ${dryRun}`);
             const ext = mfFile.split('.').pop();
             const mfType = ext === 'json'
                 ? 'json'
@@ -3538,15 +3548,23 @@ function run() {
                     return yaml_1.default.parse(mfFileContent);
                 else if (mfType === 'json')
                     return JSON.parse(mfFileContent);
-                else
+                else {
+                    core.error(`Unrecognized mfType: ${mfType}, ext: ${ext}`);
                     return null;
+                }
             }))
                 .then((version) => __awaiter(this, void 0, void 0, function* () { return (version !== null && version !== void 0 ? version : zeroVersion); }))
-                .catch(() => zeroVersion);
+                .catch(e => {
+                core.error(`error parsing manifest file.\n${e}`);
+                return zeroVersion;
+            });
             const newChangelog = yield parsedMf.then((obj) => __awaiter(this, void 0, void 0, function* () { return getSemanticChangelog(obj.version); }));
             core.setOutput('version', newChangelog.newVersion);
             const chgPromise = readFileAsync(chgFile, 'utf8')
-                .catch(() => '')
+                .catch(e => {
+                core.error(`error reading changelog file: ${e}`);
+                return '';
+            })
                 .then(oldChglog => `${stringifyChg(newChangelog)}\n${oldChglog}`)
                 .then((chglogStr) => __awaiter(this, void 0, void 0, function* () {
                 core.info('Changelog new content:\n');
@@ -3586,7 +3604,7 @@ function run() {
             Promise.all([chgPromise, mfPromise]);
         }
         catch (error) {
-            core.info(error);
+            core.error(error.message);
             core.setFailed(error.message);
         }
     });
@@ -3645,7 +3663,10 @@ function parse(l) {
 }
 function getSemanticChangelog(version) {
     return __awaiter(this, void 0, void 0, function* () {
-        const tagPrefix = debug ? 'v' : core.getInput('tag_prefix');
+        const tagPrefix = core.getInput('tag_prefix');
+        core.info('Reading logs');
+        core.info(`tag_prefix: ${tagPrefix}`);
+        core.info(`version from: ${version}`);
         const logs = version === '0.0.0'
             ? git.log()
             : git.log({
@@ -3712,7 +3733,7 @@ ${stringifyMap(changelog.breakingChanges)}`;
     const changes = changelog.nonBreakingChanges.size === 0
         ? ''
         : brkChanges === '' && untrackedChanges === ''
-            ? stringifyMap(changelog.nonBreakingChanges)
+            ? `\n${stringifyMap(changelog.nonBreakingChanges)}`
             : `\n## Changes
 
 ${stringifyMap(changelog.nonBreakingChanges)}`;
@@ -3726,7 +3747,8 @@ function stringifyNonConventionalCommits(cs) {
 function stringifyHeader(str) {
     var _a;
     let r = str;
-    const prefix = debug ? 'prefix' : core.getInput('issues_url_prefix');
+    const prefix = core.getInput('issues_url_prefix');
+    core.info(`issues_url_prefix: ${prefix}`);
     (_a = str
         .match(mentionRegex)) === null || _a === void 0 ? void 0 : _a.forEach(e => (r = r.replace(e, `[${e}](${prefix}${e.substr(1)})`)));
     return r;
