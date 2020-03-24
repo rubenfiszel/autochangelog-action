@@ -15,13 +15,25 @@ interface Version {
 
 type ManifestType = 'json' | 'yaml'
 
-const debug = false
-
 async function run(): Promise<void> {
+  const debug = false
+
+  if (debug) {
+    process.env['manifest_file'] = './manifest.yml'
+    process.env['changelog_file'] = './CHANGELOG.md'
+    process.env['dry_run'] = 'true'
+    process.env['tag_prefix'] = 'v'
+    process.env['issues_url_prefix'] = 'issues'
+  }
+
   try {
-    const mfFile = debug ? './manifest.yml' : core.getInput('manifest_file')
-    const chgFile = debug ? './CHANGELOG.md' : core.getInput('changelog_file')
-    const dryRun = debug ? true : core.getInput('dry_run') === 'true'
+    const mfFile = core.getInput('manifest_file')
+    const chgFile = core.getInput('changelog_file')
+    const dryRun = core.getInput('dry_run') === 'true'
+
+    core.info(`mfFile: ${mfFile}`)
+    core.info(`chFile: ${chgFile}`)
+    core.info(`dryRun: ${dryRun}`)
 
     const ext = mfFile.split('.').pop()
     const mfType: ManifestType | undefined =
@@ -36,10 +48,16 @@ async function run(): Promise<void> {
       .then(async mfFileContent => {
         if (mfType === 'yaml') return YAML.parse(mfFileContent)
         else if (mfType === 'json') return JSON.parse(mfFileContent)
-        else return null
+        else {
+          core.error(`Unrecognized mfType: ${mfType}, ext: ${ext}`)
+          return null
+        }
       })
       .then(async version => version ?? zeroVersion)
-      .catch(() => zeroVersion)
+      .catch(e => {
+        core.error(`error parsing manifest file.\n${e}`)
+        return zeroVersion
+      })
 
     const newChangelog = await parsedMf.then(async obj =>
       getSemanticChangelog(obj.version)
@@ -48,7 +66,10 @@ async function run(): Promise<void> {
     core.setOutput('version', newChangelog.newVersion)
 
     const chgPromise = readFileAsync(chgFile, 'utf8')
-      .catch(() => '')
+      .catch(e => {
+        core.error(`error reading changelog file: ${e}`)
+        return ''
+      })
       .then(oldChglog => `${stringifyChg(newChangelog)}\n${oldChglog}`)
       .then(async chglogStr => {
         core.info('Changelog new content:\n')
@@ -84,7 +105,7 @@ async function run(): Promise<void> {
       })
     Promise.all([chgPromise, mfPromise])
   } catch (error) {
-    core.info(error)
+    core.error(error.message)
     core.setFailed(error.message)
   }
 }
@@ -174,7 +195,12 @@ interface SemanticChangelog {
 async function getSemanticChangelog(
   version: string
 ): Promise<SemanticChangelog> {
-  const tagPrefix = debug ? 'v' : core.getInput('tag_prefix')
+  const tagPrefix = core.getInput('tag_prefix')
+
+  core.info('Reading logs')
+  core.info(`tag_prefix: ${tagPrefix}`)
+  core.info(`version from: ${version}`)
+
   const logs =
     version === '0.0.0'
       ? git.log()
@@ -262,7 +288,7 @@ ${stringifyMap(changelog.breakingChanges)}`
     changelog.nonBreakingChanges.size === 0
       ? ''
       : brkChanges === '' && untrackedChanges === ''
-      ? stringifyMap(changelog.nonBreakingChanges)
+      ? `\n${stringifyMap(changelog.nonBreakingChanges)}`
       : `\n## Changes
 
 ${stringifyMap(changelog.nonBreakingChanges)}`
@@ -278,7 +304,9 @@ function stringifyNonConventionalCommits(cs: NonConventionalCommit[]): string {
 
 function stringifyHeader(str: string): string {
   let r = str
-  const prefix = debug ? 'prefix' : core.getInput('issues_url_prefix')
+  const prefix = core.getInput('issues_url_prefix')
+  core.info(`issues_url_prefix: ${prefix}`)
+
   str
     .match(mentionRegex)
     ?.forEach(e => (r = r.replace(e, `[${e}](${prefix}${e.substr(1)})`)))
