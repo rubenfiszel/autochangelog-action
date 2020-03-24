@@ -34,6 +34,7 @@ async function run(): Promise<void> {
     core.info(`mfFile: ${mfFile}`)
     core.info(`chFile: ${chgFile}`)
     core.info(`dryRun: ${dryRun}`)
+    core.info(`issues_url_prefix: ${core.getInput('issues_url_prefix')}`)
 
     const ext = mfFile.split('.').pop()
     const mfType: ManifestType | undefined =
@@ -305,7 +306,6 @@ function stringifyNonConventionalCommits(cs: NonConventionalCommit[]): string {
 function stringifyHeader(str: string): string {
   let r = str
   const prefix = core.getInput('issues_url_prefix')
-  core.info(`issues_url_prefix: ${prefix}`)
 
   str
     .match(mentionRegex)

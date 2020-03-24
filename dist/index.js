@@ -3535,6 +3535,7 @@ function run() {
             core.info(`mfFile: ${mfFile}`);
             core.info(`chFile: ${chgFile}`);
             core.info(`dryRun: ${dryRun}`);
+            core.info(`issues_url_prefix: ${core.getInput('issues_url_prefix')}`);
             const ext = mfFile.split('.').pop();
             const mfType = ext === 'json'
                 ? 'json'
@@ -3748,7 +3749,6 @@ function stringifyHeader(str) {
     var _a;
     let r = str;
     const prefix = core.getInput('issues_url_prefix');
-    core.info(`issues_url_prefix: ${prefix}`);
     (_a = str
         .match(mentionRegex)) === null || _a === void 0 ? void 0 : _a.forEach(e => (r = r.replace(e, `[${e}](${prefix}${e.substr(1)})`)));
     return r;
